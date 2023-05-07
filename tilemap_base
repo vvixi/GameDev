@@ -1,5 +1,5 @@
 // Tilemap and Occluder with centered tile based movement in P3 by vvixi
-
+// see "assets" directory for tiles image
 PImage tilemapimg;
 TileMap tilemap;
 int blk = 16;
