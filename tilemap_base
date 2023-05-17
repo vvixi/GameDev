@@ -1,5 +1,6 @@
 // Tilemap and Occluder with centered tile based movement in P3 by vvixi
-// see "assets" directory for tiles image
+// added helper function for collisions
+// todo: fog of war, collision
 PImage tilemapimg;
 TileMap tilemap;
 int blk = 16;
@@ -15,7 +16,7 @@ Player player;
 int tileW, tileH;
 
 void setup() {
-  surface.setTitle("Tilemap and Occluder");
+  surface.setTitle("Tilemap Base");
   size(640, 640);
   tilemapimg = loadImage("assets/Dungeon_Tileset.png");
   imageMode(CENTER);
@@ -100,7 +101,10 @@ class TileMap {
               
             case 1:
             // wall tile
-              image(tiles.get(2), j * tileW + tileW/2 + offsX, i * tileH + tileH/2 + offsY, tileW, tileH);
+              image(tiles.get(1), j * tileW + tileW/2 + offsX, i * tileH + tileH/2 + offsY, tileW, tileH);
+              //image(tiles.get(2), j * tileW + tileW/2 + offsX, i * tileH + tileH/2 + offsY, tileW, tileH);
+              //image(tiles.get(3), j * tileW + tileW/2 + offsX, i * tileH + tileH/2 + offsY, tileW, tileH);
+              //image(tiles.get(4), j * tileW + tileW/2 + offsX, i * tileH + tileH/2 + offsY, tileW, tileH);
               break;
               
             case 3:
@@ -132,6 +136,11 @@ void keyPressed() {
 class Player{
   boolean spawned = true;
   float posx, posy;
+  PVector dir = new PVector(0, 0);
+  PVector up = new PVector(0, -1);
+  PVector down = new PVector(0, 1);
+  PVector left = new PVector(-1, 0);
+  PVector right = new PVector(1, 0);
   
   Player(float _posx, float _posy)  {
     posx = _posx;
@@ -149,30 +158,46 @@ class Player{
     rect(posx, posy, blk, blk);
   }
   
+  public boolean canMove(PVector _dir) {
+    dir = _dir;
+    boolean move = true;
+    return move;
+    // need check for a wall tile in passed in dir
+  }
+  
   void keyPressed() {
 
     if(spawned) {
       if(key == CODED) {
         if(keyCode == UP) {
-          tilemap.offsY += blk;
-          tilemap.ocStartY -= 1;
-          tilemap.ocEndY -= 1;
+          // basic collision test before allowing movement
+          if (canMove(up)) {
+            tilemap.offsY += blk;
+            tilemap.ocStartY -= 1;
+            tilemap.ocEndY -= 1;
+          }
 
         }
         else if(keyCode == DOWN) {
-          tilemap.offsY -= blk;
-          tilemap.ocStartY += 1;
-          tilemap.ocEndY += 1;
+          if (canMove(down)) {
+            tilemap.offsY -= blk;
+            tilemap.ocStartY += 1;
+            tilemap.ocEndY += 1;
+          }
         }
         else if(keyCode == LEFT) {
-          tilemap.offsX += blk;
-          tilemap.ocStartX -= 1;
-          tilemap.ocEndX -= 1;
+          if (canMove(left)) {
+            tilemap.offsX += blk;
+            tilemap.ocStartX -= 1;
+            tilemap.ocEndX -= 1;
+          }
         }
         else if(keyCode == RIGHT) {
-          tilemap.offsX -= blk;
-          tilemap.ocStartX += 1;
-          tilemap.ocEndX += 1;
+          if (canMove(right)) {
+            tilemap.offsX -= blk;
+            tilemap.ocStartX += 1;
+            tilemap.ocEndX += 1;
+          }
         }
       }
     }
