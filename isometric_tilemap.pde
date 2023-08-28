@@ -23,6 +23,7 @@ void setup() {
 class isoMap {
   
   float a, b, c, d, cap;
+  PVector p = new PVector(mouseX * tileH, (mouseY + tileH / 2) * tileW); 
   
   void make_isoMap() {
     background(40);
@@ -43,8 +44,38 @@ class isoMap {
       }
     }
   }
+  
+  public PVector screen2map() {
+    // formula for capturing the mouse or entity location
+    // cap = 1 / (a*d) - (b*c);
+    // println(cap);
+    float tileArea = tileH * tileW;
+    float constX = -height / 2 * tileW + width/2 * tileH;
+    float constY = -height / 2 * tileW - width/2 * tileH;
+    // tiles anchored by center, not bottom
+ 
+    if (frameCount % 120 == 0) {
+      println(new PVector(((p.y - p.x + constX) / tileArea), ((p.y + p.x + constY) / tileArea)));
+    }
+    return new PVector(int((p.y - p.x + constX) / tileArea), int((p.y + p.x + constY) / tileArea));
+  }
+  public PVector map2screen() {
+    PVector screenCen = new PVector(int(width/2), int(height/2));
+    PVector screenPoint = new PVector(floor((p.y - p.x) * tileW / 2), floor((p.y + p.x) * tileH /2));
+    PVector result = screenCen.add(screenPoint);
+    result = new PVector(floor(result.x), floor(result.y));
+    
+    if (frameCount % 120 == 0) {
+      
+      println(result);
+      
+    }
+    return result;
+  }
+}
 
 void draw() {
   map.make_isoMap();
-  map.captureMouse();
+  
+  map.screen2map();
 }
