@@ -24,7 +24,11 @@ class isoMap {
   
   float a, b, c, d, cap;
   PVector p = new PVector(mouseX * tileH, (mouseY + tileH / 2) * tileW); 
-  
+  float tileArea = tileH * tileW;
+  float x2tileArea = 2 * tileH * tileW;
+  float constX = (-height / 2) * tileW + (width/2 * tileH);
+  float constY = (-height / 2) * tileW - (width/2 * tileH);
+    
   void make_isoMap() {
     background(40);
     translate(width/2-tileW/2, 50);
@@ -47,22 +51,21 @@ class isoMap {
   
   public PVector screen2map() {
     // formula for capturing the mouse or entity location
-    // cap = 1 / (a*d) - (b*c);
-    // println(cap);
-    float tileArea = tileH * tileW;
-    float constX = -height / 2 * tileW + width/2 * tileH;
-    float constY = -height / 2 * tileW - width/2 * tileH;
+
     // tiles anchored by center, not bottom
- 
+    p = new PVector(mouseX * tileH, (mouseY + tileH / 2) * tileW);
+    PVector point = new PVector(floor((p.y - p.x + constX) / tileArea), floor((p.y + p.x + constY) / tileArea));
+    
     if (frameCount % 120 == 0) {
-      println(new PVector(((p.y - p.x + constX) / tileArea), ((p.y + p.x + constY) / tileArea)));
+      println(point);
     }
-    return new PVector(int((p.y - p.x + constX) / tileArea), int((p.y + p.x + constY) / tileArea));
+    return point;
   }
   public PVector map2screen() {
     PVector screenCen = new PVector(int(width/2), int(height/2));
     PVector screenPoint = new PVector(floor((p.y - p.x) * tileW / 2), floor((p.y + p.x) * tileH /2));
     PVector result = screenCen.add(screenPoint);
+    
     result = new PVector(floor(result.x), floor(result.y));
     
     if (frameCount % 120 == 0) {
