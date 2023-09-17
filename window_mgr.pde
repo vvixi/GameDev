@@ -3,19 +3,18 @@
 // implemented in P4 by vvixi
 // note: many bugs fixed
 // receive grid input needs replaced with a cell class
-// or otherwise refactored and simplified
 
 Window window;
 
 void setup() {
-  
+
   size(600, 600);
-  // set this for top or bottom windows
+   //set this for top or bottom windows
   //PVector winSize = new PVector(width, height/2);
   //window = new Window("bottomHalf", winSize);
   //window = new Window("topHalf", winSize);
   
-  // set this for left or right windows
+  //set this for left or right windows
   PVector winSize = new PVector(width / 2, height);
   window = new Window("rightHalf", winSize);
   //window = new Window("leftHalf", winSize);
@@ -26,21 +25,25 @@ void draw() {
   
   background(0);
   window.display();
-
+  if (window.displayed) {
+    for (GridCell gridCell : window.gridCells) {
+      gridCell.listen();
+    }
+  }
 }
 
 public class Window {
   
   // creates windows
-  //ArrayList<Listener> listeners = new ArrayList<Listener>();
+  ArrayList<GridCell> gridCells = new ArrayList<GridCell>();
   Boolean displayed = true;
   String position;
   PVector size;
   float xSize;
   float ySize;
+  float vOffset;
   int closeStartX;
   int closeStartY;
-  int topLeft = 0;
   int topRight;
   PVector gridSize;
   int divH;
@@ -98,27 +101,22 @@ public class Window {
 
       } else if (position == "topHalf") {
         
-        xSize = width;
-        ySize = height / 2;
-        topLeft = 0;
         topRight = width;
+        bufferY = 50;
         closeStartX = width - 50;
         closeStartY = 0;
-        rect(0, 0, size.x, size.y/2);
+        rect(0, 0, size.x, size.y);
         drawGrid(new PVector(size.x, size.y), 3, 3);
         drawClose(closeStartX, closeStartY);
         
       } else if (position == "bottomHalf") {
         
-        bufferY = height / 2;
-        xSize = width;
-        ySize = height / 2;
-        topLeft = height / 2;
         topRight = width;
+        bufferY = 50;
         closeStartX = width - 50;
-        closeStartY = height / 2 - 50;
-        rect(0, height/2, xSize, ySize);
-        drawGrid(new PVector(xSize, ySize), 3, 3);
+        closeStartY = height / 2;
+        rect(0, height/2, size.x, size.y);
+        drawGrid(new PVector(size.x, size.y), 3, 3);
         drawClose(closeStartX, closeStartY);
         
       }
@@ -127,17 +125,25 @@ public class Window {
   void drawGrid(PVector _size, int _divH, int _divV) {
     
     // draws the UI grid within the displayed window
-    gridSize = _size;
-    divH = _divH;
-    divV = _divV;
+    GridCell gridCell;
+    this.gridSize = _size;
+    this.divH = _divH;
+    this.divV = _divV;
+    this.vOffset = 0;
     // determines block size for the below loop
-    block = new PVector(gridSize.x / divH, gridSize.y / divV - (bufferY / divV));
+    this.block = new PVector(gridSize.x / divH, gridSize.y / divV - (bufferY / divV));
+
+    if (position == "bottomHalf") {
+
+      this.vOffset = height/2;
+    }
 
     fill(200);
     for (int i = 0; i < divH; i++) {
       for (int j = 0; j < divV; j++) {
-        rect(bufferX + i * block.x, 0 + j * block.y + bufferY, gridSize.x / divH, gridSize.y / divV);
 
+        rect(bufferX + i * block.x, bufferY + j * block.y + vOffset, gridSize.x / divH, gridSize.y / divV - (bufferY / divV));
+        gridCells.add(new GridCell(bufferX + i * block.x, bufferY + j * block.y + vOffset, gridSize.x / divH, gridSize.y / divV - (bufferY / divV)));
       }
     }
   }
@@ -157,15 +163,19 @@ public class Window {
   
     cell.x = floor(mouseX / window.block.x);
     cell.y = floor((mouseY / window.block.y)-(window.bufferY/window.block.y));
-
     fill(0, 100, 200);
-
+    //rect(cell.x * window.block.x, (cell.y * window.block.y), window.block.x, window.block.y);
     if (window.position == "rightHalf") {
       
       // here we are accounting for the grid starting on the right half
       // of the screen, adjusting x to be 0 instead of 5 in the 0,0 spot
-      // the right window is the only one requiring this distinction
-      cell.x = cell.x-window.divH;
+      // the right window and bottom require this distinction
+      cell.x = cell.x - this.divH;
+      
+    } else if (window.position == "bottomHalf") {
+      // needs further debugging
+      cell.y = floor((mouseY / window.block.y)-3);
+
     }
   
     return new PVector(cell.x, cell.y);
@@ -205,6 +215,28 @@ public class Window {
     //}
   
     return pos;
+  }
+}
+
+public class GridCell {
+  
+  float posX, posY, sizeX, sizeY, id;
+  
+  GridCell(float _posX, float _posY, float _sizeX, float _sizeY) {
+    
+    this.posX = _posX;
+    this.posY = _posY;
+    this.sizeX = _sizeX;
+    this.sizeY = _sizeY;
+    
+  }
+  void listen() {
+    if(mouseX > this.posX && mouseX < this.posX + this.sizeX &&
+    mouseY > this.posY && mouseY < this.posY + this.sizeY) {
+      fill(0, 180, 220);
+      rect(this.posX, this.posY, this.sizeX, this.sizeY);
+      
+    }
   }
 }
   
