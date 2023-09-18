@@ -10,13 +10,13 @@ void setup() {
 
   size(600, 600);
    //set this for top or bottom windows
-  //PVector winSize = new PVector(width, height/2);
-  //window = new Window("bottomHalf", winSize);
+  PVector winSize = new PVector(width, height/2);
+  window = new Window("bottomHalf", winSize);
   //window = new Window("topHalf", winSize);
   
   //set this for left or right windows
-  PVector winSize = new PVector(width / 2, height);
-  window = new Window("rightHalf", winSize);
+  //PVector winSize = new PVector(width / 2, height);
+  //window = new Window("rightHalf", winSize);
   //window = new Window("leftHalf", winSize);
   
 }
@@ -129,15 +129,13 @@ public class Window {
     this.gridSize = _size;
     this.divH = _divH;
     this.divV = _divV;
-    this.vOffset = 0;
-    // determines block size for the below loop
-    this.block = new PVector(gridSize.x / divH, gridSize.y / divV - (bufferY / divV));
 
+    this.block = new PVector(gridSize.x / divH, gridSize.y / divV - (bufferY / divV));
     if (position == "bottomHalf") {
 
       this.vOffset = height/2;
     }
-
+    //bufferY+=height/2;
     fill(200);
     for (int i = 0; i < divH; i++) {
       for (int j = 0; j < divV; j++) {
@@ -163,8 +161,8 @@ public class Window {
   
     cell.x = floor(mouseX / window.block.x);
     cell.y = floor((mouseY / window.block.y)-(window.bufferY/window.block.y));
+
     fill(0, 100, 200);
-    //rect(cell.x * window.block.x, (cell.y * window.block.y), window.block.x, window.block.y);
     if (window.position == "rightHalf") {
       
       // here we are accounting for the grid starting on the right half
@@ -173,8 +171,8 @@ public class Window {
       cell.x = cell.x - this.divH;
       
     } else if (window.position == "bottomHalf") {
-      // needs further debugging
-      cell.y = floor((mouseY / window.block.y)-3);
+      
+      cell.y = floor((mouseY / window.block.y)-(divV));
 
     }
   
@@ -224,6 +222,7 @@ public class GridCell {
   
   GridCell(float _posX, float _posY, float _sizeX, float _sizeY) {
     
+    //this.id = random(999);
     this.posX = _posX;
     this.posY = _posY;
     this.sizeX = _sizeX;
@@ -238,6 +237,7 @@ public class GridCell {
       
     }
   }
+  
 }
   
 void mousePressed() {
