@@ -1,8 +1,6 @@
 // Simple popup window system for use as message boxes
 // or to contain UI elements
 // implemented in P4 by vvixi
-// note: many bugs fixed
-// receive grid input needs replaced with a cell class
 
 Window window;
 
@@ -11,8 +9,8 @@ void setup() {
   size(600, 600);
    //set this for top or bottom windows
   PVector winSize = new PVector(width, height/2);
-  window = new Window("bottomHalf", winSize);
-  //window = new Window("topHalf", winSize);
+  //window = new Window("bottomHalf", winSize);
+  window = new Window("topHalf", winSize);
   
   //set this for left or right windows
   //PVector winSize = new PVector(width / 2, height);
@@ -39,8 +37,6 @@ public class Window {
   Boolean displayed = true;
   String position;
   PVector size;
-  float xSize;
-  float ySize;
   float vOffset;
   int closeStartX;
   int closeStartY;
@@ -74,7 +70,7 @@ public class Window {
         
   void display() {
     
-    // displays the window based on its position
+    // displays the window based on the string: "position"
     if (displayed) {
       rectMode(CORNER);
       fill(50);
@@ -114,7 +110,7 @@ public class Window {
         topRight = width;
         bufferY = 50;
         closeStartX = width - 50;
-        closeStartY = height / 2;
+        closeStartY = height/2;
         rect(0, height/2, size.x, size.y);
         drawGrid(new PVector(size.x, size.y), 3, 3);
         drawClose(closeStartX, closeStartY);
@@ -130,12 +126,14 @@ public class Window {
     this.divH = _divH;
     this.divV = _divV;
 
+    // determines block size for the below loop
     this.block = new PVector(gridSize.x / divH, gridSize.y / divV - (bufferY / divV));
+
     if (position == "bottomHalf") {
 
       this.vOffset = height/2;
     }
-    //bufferY+=height/2;
+
     fill(200);
     for (int i = 0; i < divH; i++) {
       for (int j = 0; j < divV; j++) {
@@ -161,8 +159,9 @@ public class Window {
   
     cell.x = floor(mouseX / window.block.x);
     cell.y = floor((mouseY / window.block.y)-(window.bufferY/window.block.y));
-
+    //println(window.divV/window.block.y);
     fill(0, 100, 200);
+    //rect(cell.x * window.block.x, (cell.y * window.block.y), window.block.x, window.block.y);
     if (window.position == "rightHalf") {
       
       // here we are accounting for the grid starting on the right half
@@ -171,11 +170,11 @@ public class Window {
       cell.x = cell.x - this.divH;
       
     } else if (window.position == "bottomHalf") {
-      
-      cell.y = floor((mouseY / window.block.y)-(divV));
+
+      cell.y = floor((mouseY / window.block.y)-(window.bufferY/window.block.y) - divV - bufferY/block.y);
 
     }
-  
+
     return new PVector(cell.x, cell.y);
   }
 
@@ -200,7 +199,12 @@ public class Window {
       //window = new Window("rightHalf", gridSize);
       println("2 - 0");
       //return pos;
-    } 
+    } else if (pos.x == 2 && pos.y == 1) {
+      
+      //window = new Window("rightHalf", gridSize);
+      println("2 - 1");
+      //return pos;
+    }
     
     //// col select
     //if (translateMouse().x == 0) {
