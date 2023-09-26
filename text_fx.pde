@@ -1,7 +1,7 @@
 // Text FX class in P4 by vvixi
-//MsgBox mbox;
+// needs refactoring
 TextFx textfx;
-Timer timer;
+Timer timer, timer2;
 
 class Timer {
   
@@ -24,19 +24,18 @@ class Timer {
   Boolean timeUp() {
     
     timeElapsed = millis() - timeStart;
-    println(timeElapsed);
-    if (timeElapsed > delay * 700) {
-      
+    if (timeElapsed > delay * 800) {
+
       return true;
     }
     return false;
-    
   }
 }
   
 void setup() {
   
-  timer = new Timer(2);
+  timer = new Timer(4);
+  timer2 = new Timer(4);
   timer.start();
   frameRate(32);
   size(600, 600);
@@ -45,7 +44,7 @@ void setup() {
 }
 
 void draw() {
-
+  
   background(0);
   //println(PFont.list());
   //textfx.bounce();
@@ -53,6 +52,20 @@ void draw() {
   //textfx.jittery();
   //textfx.still();
   
+  if (!timer.timeUp()) {
+    
+      textfx.still();
+      timer2.start();
+      
+  } else if (timer.timeUp() && !timer2.timeUp()) {
+
+    textfx.bounce();
+
+  } else if (timer.timeUp() && timer2.timeUp()) {
+    
+    textfx.wavy();
+
+  }
 }
 
 class TextFx {
