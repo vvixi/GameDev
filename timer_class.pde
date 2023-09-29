@@ -1,26 +1,29 @@
-// basic timer class in P3 by vvixi
-Timer timer;
-void setup() {
-  timer = new Timer();
-  timer.timeStart = millis();
-}
-void draw() {
-  timer.run();
-}
-
-void keyPressed() {
-  timer.timeStart = millis();
-}
+// basic timer class in P4 by vvixi
 class Timer {
+  
   int timeStart;
   int timeElapsed;
-  Timer() {
+  int delay;
+  
+  Timer(int _delay) {
+    
+    delay = _delay;
+    
   }
-  void run() {
+  
+  void start() {
+    
+    timeStart = millis();
+    
+  }
+  
+  Boolean timeUp() {
+    
     timeElapsed = millis() - timeStart;
-    println(timeElapsed);
-    if (timeElapsed > 2000) {
-      timeStart = millis();
+    if (timeElapsed > delay * 800) {
+
+      return true;
     }
+    return false;
   }
 }
