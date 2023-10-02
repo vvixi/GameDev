@@ -10,9 +10,10 @@ void setup() {
   //window = new Window("bottomHalf");
   //window = new Window("bottomBar");
   //window = new Window("topHalf");
-  window = new Window("topBar");
+  //window = new Window("topBar");
   //window = new Window("rightHalf");
   //window = new Window("leftHalf");
+  window = new Window("listFull");
   
 }
 
@@ -27,8 +28,7 @@ void draw() {
 public class Window {
   
   // creates windows based on string passed in
-  // params: "topHalf", "topBar","leftHalf", "rightHalf", "bottomHalf", "bottomBar"
-
+  // params: "topHalf", "topBar","leftHalf", "rightHalf", "bottomHalf", "bottomBar", "twoColumn", "listFull"
   private PVector[][] gridPositions;
   private Boolean displayed = true;
   private Boolean showClose = true;
@@ -133,8 +133,29 @@ public class Window {
         closeStartY = height / 2;
         rect(0, height / 2, size.x, size.y);
         drawGrid(new PVector(size.x, size.y), 3, 3);
+      
+      } else if (position == "twoColumn") {
         
+        size = new PVector(width, height);
+        topRight = width;
+        bufferY = 50;
+        closeStartX = width - 50;
+        closeStartY = 0;
+        rect(0, 0, size.x, size.y);
+        drawGrid(new PVector(size.x, size.y), 2, 3);
+      
+      } else if (position == "listFull") {
+        
+        size = new PVector(width, height);
+        topRight = width;
+        bufferY = 50;
+        closeStartX = width - 50;
+        closeStartY = 0;
+        rect(0, 0, size.x, size.y);
+        drawGrid(new PVector(size.x, size.y), 1, 8);
       }
+      
+      if(showClose) { drawClose(closeStartX, closeStartY); }
       if(showClose) { drawClose(closeStartX, closeStartY); }
     } 
   }
