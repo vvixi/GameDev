@@ -1,30 +1,49 @@
 // Simple popup window system to contain UI elements
 // implemented in P4 by vvixi
 // more bug-fixes, and new params added, additional notes and cleanup
-Window window;
+// needs additional work to make multiple windows play nicely
+windowManager windowmgr;
+Window window, topbar;
 
 void setup() {
 
   size(900, 900);
-  //set this for top or bottom windows
-  //window = new Window("bottomHalf");
-  //window = new Window("bottomBar");
-  //window = new Window("topHalf");
-  //window = new Window("topBar");
-  //window = new Window("rightHalf");
-  //window = new Window("leftHalf");
-  window = new Window("listFull");
+  windowmgr = new windowManager();
   
 }
 
 void draw() {
   
   background(0);
-  window.display();
-  window.checkMouseOver();
+  windowmgr.render();
 
 }
+public class windowManager {
+  Window window, topbar;
 
+  windowManager() {
+
+    //window = new Window("bottomHalf");
+    //window = new Window("bottomBar");
+    //window = new Window("topHalf");
+    //topbar = new Window("topBar");
+    //window = new Window("rightHalf");
+    //window = new Window("leftHalf");
+    //window = new Window("listFull");
+    //window = new Window("gridFull");
+    window = new Window("gridFull");
+    topbar = new Window("topBar");
+  }
+  
+  void render() {
+    
+    window.display();
+    window.checkMouseOver();
+    topbar.display();
+    topbar.checkMouseOver();
+  }
+  
+}
 public class Window {
   
   // creates windows based on string passed in
@@ -43,7 +62,7 @@ public class Window {
   private int divV;
   private int bufferX=0, bufferY=50;
   private PVector block;
-  
+  Boolean hasFocus = false;
   Window(String _position) {
 
     position = _position;
@@ -153,6 +172,16 @@ public class Window {
         closeStartY = 0;
         rect(0, 0, size.x, size.y);
         drawGrid(new PVector(size.x, size.y), 1, 8);
+        
+      } else if (position == "gridFull") {
+        
+        size = new PVector(width, height);
+        topRight = width;
+        bufferY = 50;
+        closeStartX = width - 50;
+        closeStartY = 0;
+        rect(0, 0, size.x, size.y);
+        drawGrid(new PVector(size.x, size.y), 4, 8);
       }
       
       if(showClose) { drawClose(closeStartX, closeStartY); }
@@ -199,9 +228,12 @@ public class Window {
         for (int j = 0; j < gridPositions[0].length; j++) {
           if(mouseX > gridPositions[i][j].x && mouseX < gridPositions[i][j].x + cellXsize &&
           mouseY > gridPositions[i][j].y && mouseY < gridPositions[i][j].y + cellYsize) {
+            hasFocus = true;
             fill(0, 180, 220);
             rect(gridPositions[i][j].x, gridPositions[i][j].y, cellXsize, cellYsize);
-          } 
+          } else {
+            hasFocus = false;
+          }
         }
       }
     }
@@ -212,19 +244,19 @@ public class Window {
     // this needs to account for bufferY which is throwing the input off
     PVector cell = new PVector(0, 0);
   
-    cell.x = floor(mouseX / window.block.x);
-    cell.y = floor((mouseY / window.block.y)-(window.bufferY/window.block.y));
+    cell.x = floor(mouseX / windowmgr.window.block.x);
+    cell.y = floor((mouseY / windowmgr.window.block.y)-(windowmgr.window.bufferY/windowmgr.window.block.y));
     //println(window.divV/window.block.y);
     fill(0, 100, 200);
     //rect(cell.x * window.block.x, (cell.y * window.block.y), window.block.x, window.block.y);
-    if (window.position == "rightHalf") {
+    if (windowmgr.window.position == "rightHalf") {
       
       // here we are accounting for the grid starting on the right half
       // of the screen, adjusting x to be 0 instead of 5 in the 0,0 spot
       // the right window and bottom require this distinction
       cell.x -= divH;
       
-    } else if (window.position == "bottomHalf") {
+    } else if (windowmgr.window.position == "bottomHalf") {
 
       // the obvious cell.y - this.divV didn't work so this is an ugly work around
       cell.y = floor((mouseY / block.y)-(bufferY/block.y) - divV - bufferY/block.y);
@@ -239,26 +271,28 @@ public class Window {
     
     // this captures user input from the grid
     // cell select
-    if (pos.x == 0 && pos.y == 0) {
-      
-      window = new Window("leftHalf");
-      println("0 - 0");
-
-    } else if (pos.x == 1 && pos.y == 0) {
-      
-      window = new Window("rightHalf");
-      println("1 - 0");
-
-    } else if (pos.x == 2 && pos.y == 0) {
-      
-      window = new Window("topHalf");
-      println("2 - 0");
-
-    } else if (pos.x == 3 && pos.y == 0) {
-      
-      window = new Window("bottomHalf");
-      println("2 - 1");
-
+    if (hasFocus) {
+      if (pos.x == 0 && pos.y == 0) {
+        
+        window = new Window("leftHalf");
+        println("0 - 0");
+  
+      } else if (pos.x == 1 && pos.y == 0) {
+        
+        window = new Window("rightHalf");
+        println("1 - 0");
+  
+      } else if (pos.x == 2 && pos.y == 0) {
+        
+        window = new Window("topHalf");
+        println("2 - 0");
+  
+      } else if (pos.x == 3 && pos.y == 0) {
+        
+        window = new Window("bottomHalf");
+        println("2 - 1");
+  
+      }
     }
     
     //// col select
@@ -277,7 +311,9 @@ public class Window {
 
 void mousePressed() {
   
-  window.checkClose();
-  window.receiveGridInput();
+  windowmgr.window.checkClose();
+  windowmgr.window.receiveGridInput();
+  windowmgr.topbar.checkClose();
+  windowmgr.topbar.receiveGridInput();
   
 }
