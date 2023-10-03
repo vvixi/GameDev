@@ -47,7 +47,7 @@ public class windowManager {
 public class Window {
   
   // creates windows based on string passed in
-  // params: "topHalf", "topBar","leftHalf", "rightHalf", "bottomHalf", "bottomBar", "twoColumn", "listFull"
+  // params: "topHalf", "topBar","leftHalf", "rightHalf", "bottomHalf", "bottomBar", "twoColumn", "listFull", "gridFull"
   private PVector[][] gridPositions;
   private Boolean displayed = true;
   private Boolean showClose = true;
