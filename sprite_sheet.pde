@@ -1,19 +1,23 @@
 // basic spritesheet animations in P4 by vvixi
 Player player;
 Water water;
+Log log;
+int[][] map = new int[18][18];
 
 public enum playerState {
   
   IDLE,
   JUMP,
   LAND,
+  SINK,
   DRIFT
   
 }
 
 void setup() {
 
-  frameRate(60);
+  surface.setTitle("Spritesheet");
+  frameRate(32);
   size(600, 600);
   player = new Player();
   
@@ -46,67 +50,83 @@ class Sprite {
     y = int(_pos.y);
   }
   void update() {
-    //println(x, y);
+    
     sx = curFrame * w;
     sy = row * h;
     hold = (hold +1)% delay;
-    if (loop && !playing) {
-      //println("idle");
-      delay=10;
-      if (hold == 0) {
-        curFrame = (curFrame+1) % totalFrames;
-
-      }
-    } else if (!loop) {
-      //println("jump");
-      delay=2;
-      playing = true;
-      if (curFrame < totalFrames) {
+    
+    switch(player._state) {
+  
+      case IDLE:
+        //println("idle state");
+        delay=5;
+        
         if (hold == 0) {
-          curFrame = (curFrame+1);
-          
+          curFrame = (curFrame+1) % totalFrames;
+  
         }
-      }
-      if (curFrame == totalFrames) {
-        //println("switch");
-        row = lastDir;
-        curFrame = 0;
-        loop = true;
-        playing = false;
-        return;
-      }
-    }
-    
-    if (playing) {
-      
-      switch(player._state) {
-    
-        case IDLE:
-
-          break;
-           
-        case JUMP:
-
-          break;
+        break;
+         
+      case JUMP:
+        //println("jump state");
+        delay=2;
+        
+        if (curFrame < totalFrames) {
+          if (hold == 0) {
+            curFrame = (curFrame+1);
+          }
+        }
+        if (curFrame == totalFrames) {
           
+          row = lastDir;
+          curFrame = 0;
+          player._state = playerState.IDLE;
+        }
 
-      }
+        break;
+        
+      case SINK:
+        //println("sink state");
+        hold = (hold +1)% delay;
+        row = 8;
+        lastDir = 1;
+
+        if (curFrame < totalFrames) {
+          
+          if (hold == 0) {
+            curFrame = (curFrame+1);
+            
+          }
+        } 
+        if (curFrame == totalFrames) {
+
+          row = lastDir;
+          visible = false;
+
+        }
+
+        break;
+        
+      case DRIFT:
+      
+        println("drift state");
+        player.loc.x -= 1;
+        break;
+        
     }
   }
 }
 class Water {
   
-  //int 
   int rowStart = 0;
   int rowEnd = 0;
   int colStart = 0;
   int colEnd = 0;
   int rows;
   int cols;
-  
-  //PVector locStart = new PVector(rowStart, colStart);
-  //PVector locEnd = new PVector(rowEnd, colEnd);
-  Water(int _rows, int _cols) {
+  float blk = width / 10;
+
+  Water(int _cols, int _rows) {
     rows = _rows;
     cols = _cols;
     
@@ -116,24 +136,58 @@ class Water {
     
     rowEnd = rows;
     colEnd = cols;
-    float blk = width / 10;
+    
     fill(0, 0, 160);
-    for (int i = rowStart; i < rowEnd; i++) {
-      for (int j = colStart; j < colEnd; j++) {
-        
+    for (int i = colStart; i < colEnd; i++) {
+      for (int j = rowStart; j < rowEnd; j++) {
+        map[i][j] = 1;
         rect(i * blk, j * blk, blk, blk);
         
       }
     }
   }
+  
+}
+class Log {
+  
+  int rowStart = 0;
+  int rowEnd = 0;
+  int colStart = 0;
+  int colEnd = 0;
+  int rows;
+  int cols;
+  int posX = 5;
+  int posY = 4;
+  int offsetY = 10;
+  float blk = width / 10;
+
+  Log(int _cols, int _rows) {
+    rowEnd = _rows;
+    colEnd = _cols;
+    
+  }
+  
+  void start() {
+    
+    fill(60, 60, 0);
+    for (int i = colStart; i < colEnd; i++) {
+
+      map[posX + i][posY] = 0;
+      rect(blk * posX + i*blk, blk * posY+ offsetY, blk, blk- offsetY * 2);
+
+    }
+  }
+  void update() {
+    
+    
+  }
+  
 }
 class Player {
   
   float blk = width / 10;
   playerState _state = playerState.IDLE;
   PVector loc = new PVector(5*blk,5*blk);
-  int posX = int(loc.x / blk);
-  int posY = int(loc.y / blk);
   PImage playerSprite;
   int cooldown = 10;
   Boolean visible = true;
@@ -146,53 +200,109 @@ class Player {
     sprite = new Sprite(loc);
 
   }
-  Boolean testTile(int _locX, int _locY) {
+  int testTile(int _locX, int _locY) {
     
     // test a tile passed in to check its type
-    // needs functionality
-    int nextX = _locX;
-    int nextY = _locY;
+    int nextX = int(_locX/blk);
+    int nextY = int(_locY/blk);
     
-    return true;
+    if (map[nextX][nextY] == 1) {
+
+      sprite.loop = false;
+      sprite.curFrame = 0;
+      sprite.row = 3;
+      //loc.y -= blk;
+      sprite.lastDir = 1;
+      player._state = playerState.SINK;
+      return 1;
+      
+    } else if (map[nextX][nextY] == 2) {
+      // obstacle
+      return 2;
+    } else if (map[nextX][nextY] == 3) {
+      // vehicle
+      splat();
+      return 3;
+    }
+    return 0;
     
   }
+  
+  int checkCollision(int _x, int _y) {
+    println(loc.x/blk, loc.y/blk, 4);
+    if (dist(loc.x/blk, loc.y/blk, _x, _y) < 1) {
+      println(1);
+      return 1;
+    }
+    println(0);
+    return 0;
+  }
+  
+  void sink() {
+
+   // play death animation
+   sprite.delay = 15;
+   sprite.loop = false;
+   sprite.curFrame = 0;
+   sprite.row = 8;
+   sprite.lastDir = 1;
+
+  }
+  
+  void splat() {
+   // play death animation
+   sprite.loop = false;
+   sprite.curFrame = 0;
+   //sprite.row =
+   sprite.lastDir = 1;
+  }
+  
   void move(String _dir) {
-    
+
     if (_dir == "up") {
-      if (player.testTile(int(loc.x), int(loc.y - 1))) {
+      if (player.testTile(int(loc.x), int(loc.y - 1))==0) {
         sprite.loop = false;
         sprite.curFrame = 0;
         sprite.row = 3;
         loc.y -= blk;
         sprite.lastDir = 1;
+        player._state = playerState.JUMP;
+
+      } else if (player.testTile(int(loc.x), int(loc.y - 1))==1) {
+
+        loc.y -= blk;
+
       }
       
     } else if (_dir == "right") {
-        if (player.testTile(int(loc.x + 1), int(loc.y))) {
+        if (player.testTile(int(loc.x + 1), int(loc.y))==0) {
           sprite.loop = false;
           sprite.curFrame = 0;
           sprite.row = 6;
           loc.x += blk;
           sprite.lastDir = 4;
+          player._state = playerState.JUMP;
         }
       
     } else if (_dir == "down") {
-        if (player.testTile(int(loc.x), int(loc.y + 1))) {
+        if (player.testTile(int(loc.x), int(loc.y + 1))==0) {
           sprite.loop = false;
           sprite.curFrame = 0;
-          sprite.row = 3;
+          sprite.row = 2;
           loc.y += blk;
           sprite.lastDir = 0;
+          player._state = playerState.JUMP;
         }
         
-      } else if (_dir == "left") {
-          if (player.testTile(int(loc.x - 1), int(loc.y))) {
-            sprite.loop = false;
-            sprite.curFrame = 0;
-            sprite.row = 7;
-            loc.x -= blk;
-            sprite.lastDir = 5;
-          }
+    } else if (_dir == "left") {
+        if (player.testTile(int(loc.x - 1), int(loc.y))==0) {
+          sprite.loop = false;
+          sprite.curFrame = 0;
+          sprite.row = 7;
+          loc.x -= blk;
+          sprite.lastDir = 5;
+          player._state = playerState.JUMP;
+        }
     }
   }
   
@@ -207,9 +317,9 @@ class Player {
   void keyPressed() {
 
     if(key == CODED) {
-
+      
       if(keyCode == UP) {
-        
+
         player.move("up");
         
       } else if(keyCode == DOWN) {
@@ -241,31 +351,34 @@ void keyReleased() {
 }
 
 void drawGrid() {
-  Water water;
+  //Water water;
   // setup the game's board
-  float rows = width / 32;
-  float cols = height / 32;
+  int rows = int(width / 32);
+  int cols = int(height / 32);
   float blk = width / 10;
-  
+  //print(rows);
   // half
-  water = new Water(int(rows), 5);
+  water = new Water(int(cols), 5);
+  log = new Log(int(5), 4);
   // full
   //water = new Water(int(rows), int(cols));
   fill(0, 60, 0);
   stroke(0, 150, 0);
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
+      map[i][j] = 0; 
       rect(i * blk, j * blk, blk, blk);
     }
   }
   water.start();
-  //entities.start();
+  log.start();
+
 }
   
 void draw() {
   background(0);
   drawGrid();
-  //player.testTile();
+
   player.sprite.update();  
   player.display();
 }
